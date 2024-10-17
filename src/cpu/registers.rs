@@ -10,6 +10,22 @@ pub struct Registers {
     pub l: u8,
 }
 
+impl Default for Registers {
+    fn default() -> Self {
+        Registers {
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            f: FlagsRegister::default(),
+            h: 0,
+            l: 0,
+        }
+    }
+}
+
+
 // implementations for 16-bit virtual register functions
 impl Registers {
     // shift b left 8 bits and OR with c
@@ -66,6 +82,17 @@ pub struct FlagsRegister {
     pub subtract: bool,
     pub half_carry: bool,
     pub carry: bool,
+}
+
+impl Default for FlagsRegister {
+    fn default() -> Self {
+        FlagsRegister {
+            zero: false,
+            subtract: false,
+            half_carry: false,
+            carry: false,
+        }
+    }
 }
 
 // basically writing this as an enum which tells what bit position belongs to what flag
