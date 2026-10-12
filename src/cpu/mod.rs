@@ -1,13 +1,13 @@
 pub mod registers;
 
-enum Instruction {
+pub enum Instruction {
     ADD(ArithmeticTarget),
     ADDHL(ArithmeticTarget),
     ADC(ArithmeticTarget),
 }
 
 // arithmetic can be performed on all physical registers other than F
-enum ArithmeticTarget {
+pub enum ArithmeticTarget {
     A,B,C,D,E,H,L,
 }
 
@@ -83,8 +83,7 @@ impl CPU {
             ArithmeticTarget::D => self.registers.d,
             ArithmeticTarget::E => self.registers.e,
             ArithmeticTarget::H => self.registers.h,
-            ArithmeticTarget::L => self.registers.l,
-            _ => unreachable!(),
+            _ => self.registers.l
         }
     }
 }
@@ -94,7 +93,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn does_add_work_properly() {
+    fn test_add() {
         let mut cpu = CPU { registers: registers::Registers::default()};
         cpu.registers.a = 11;
         cpu.registers.b = 127;
@@ -109,7 +108,7 @@ mod tests {
     }
 
     #[test]
-    fn does_addhl_work_properly() {
+    fn test_addhl() {
         let mut cpu = CPU { registers: registers::Registers::default()};
         cpu.registers.set_hl(65535);
         cpu.registers.b = 255;
@@ -124,7 +123,7 @@ mod tests {
     }
 
     #[test]
-    fn does_adc_work_properly() {
+    fn test_adc() {
         let mut cpu = CPU { registers: registers::Registers::default()};
         cpu.registers.f.carry = true;
         cpu.registers.a = 254;

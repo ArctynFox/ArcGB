@@ -34,7 +34,7 @@ impl Registers {
         | self.c as u16
     }
 
-    // separate the given u16 into the first 8 bits for b andd the last 8 bits for c
+    // separate the given u16 into the first 8 bits for b and the last 8 bits for c
     pub fn set_bc(&mut self, value: u16) {
         // shift the bits right by 8 to get the b value
         self.b = ((value & 0xFF00) >> 8) as u8;
@@ -102,7 +102,7 @@ const HALF_CARRY_FLAG_BYTE_POSITION: u8 = 5;
 const CARRY_FLAG_BYTE_POSITION: u8 = 4;
 
 // the following two functions only interact with the upper 4 bits of the u8 used for the flag register, so that we are certain we never mess with the lower 4
-// convert from the FlagsRegister representative struct to a u8
+// convert from the FlagsRegister representative struct to u8
 impl std::convert::From<FlagsRegister> for u8  {
     fn from(flag: FlagsRegister) -> u8 {
         (if flag.zero       { 1 } else { 0 }) << ZERO_FLAG_BYTE_POSITION |
@@ -112,7 +112,7 @@ impl std::convert::From<FlagsRegister> for u8  {
     }
 }
 
-//convert from a u8 to FlagsRegister, ignoring the lower 4 bits
+//convert from u8 to FlagsRegister, ignoring the lower 4 bits
 impl std::convert::From<u8> for FlagsRegister {
     fn from(byte: u8) -> Self {
         let zero = ((byte >> ZERO_FLAG_BYTE_POSITION) & 0b1) != 0;
@@ -134,73 +134,133 @@ impl std::convert::From<u8> for FlagsRegister {
 mod tests {
     use super::*;
 
+    const EMPTY_FLAGS_REGISTER: FlagsRegister = FlagsRegister {zero: false,subtract: false,half_carry: false,carry: false};
+
+    const EMPTY_REGISTERS: Registers = Registers {
+        a: 0,
+        b: 0,
+        c: 0,
+        d: 0,
+        e: 0,
+        f: EMPTY_FLAGS_REGISTER,
+        h: 0,
+        l: 0,
+    };
+
+    const UPPER_BYTE: u8 = 0b10101010;
+    const LOWER_BYTE: u8 = 0b11000000;
+
+    fn upper_lower_as_u16(upper: u8, lower: u8) -> u16 {
+        (upper as u16) << 8 | lower as u16
+    }
+
     #[test]
-    fn does_get_bc_work() {
+    fn test_get_bc() {
         let registers = Registers {
             a: 0,
-            b: 170, // 10101010
-            c: 234, // 11101010
+            b: UPPER_BYTE,
+            c: LOWER_BYTE,
             d: 0,
             e: 0,
-            f: FlagsRegister {zero: false,subtract: false,half_carry: false,carry: false},
+            f: EMPTY_FLAGS_REGISTER,
             h: 0,
             l: 0,
         };
 
-        let testval = registers.get_bc();
-        assert_eq!(testval, 43754); // 1010101011101010
+        let result = registers.get_bc();
+        assert_eq!(result, upper_lower_as_u16(UPPER_BYTE, LOWER_BYTE));
     }
 
     #[test]
-    fn does_set_bc_work() {
-        let mut registers = Registers {
-            a: 0,
+    fn test_set_bc() {
+        let mut registers = EMPTY_REGISTERS;
+
+        registers.set_bc(upper_lower_as_u16(UPPER_BYTE, LOWER_BYTE));
+        assert_eq!(registers.b, UPPER_BYTE);
+        assert_eq!(registers.c, LOWER_BYTE);
+    }
+
+    #[test]
+    fn test_get_af() {
+        let registers = Registers {
+            a: UPPER_BYTE,
             b: 0,
             c: 0,
             d: 0,
             e: 0,
-            f: FlagsRegister {zero: false,subtract: false,half_carry: false,carry: false},
+            f: LOWER_BYTE.into(),
             h: 0,
             l: 0,
         };
 
-        registers.set_bc(50000); // 1100001101010000
-        assert_eq!(registers.b, 195); // 11000011
-        assert_eq!(registers.c, 80); // 01010000
+        let result = registers.get_af();
+        assert_eq!(result, upper_lower_as_u16(UPPER_BYTE, LOWER_BYTE));
     }
 
     #[test]
-    fn does_get_de_work() {
+    fn test_set_af() {
+        let mut registers = EMPTY_REGISTERS;
+
+        registers.set_af(upper_lower_as_u16(UPPER_BYTE, LOWER_BYTE));
+        assert_eq!(registers.a, UPPER_BYTE);
+        assert_eq!(u8::from(registers.f), LOWER_BYTE);
+
+        // also a sanity check for conversion between u8 and FlagsRegister
+        assert_eq!(registers.f.zero, true);
+        assert_eq!(registers.f.subtract, true);
+        assert_eq!(registers.f.half_carry, false);
+        assert_eq!(registers.f.carry, false);
+    }
+
+    #[test]
+    fn test_get_de() {
         let registers = Registers {
             a: 0,
             b: 0,
             c: 0,
-            d: 122, // 01111010
-            e: 3, // 00000011
-            f: FlagsRegister {zero: false,subtract: false,half_carry: false,carry: false},
+            d: UPPER_BYTE,
+            e: LOWER_BYTE,
+            f: EMPTY_FLAGS_REGISTER,
             h: 0,
             l: 0,
         };
 
-        let testval = registers.get_de();
-        assert_eq!(testval, 31235); // 0111101000000011
+        let result = registers.get_de();
+        assert_eq!(result, upper_lower_as_u16(UPPER_BYTE, LOWER_BYTE));
     }
 
     #[test]
-    fn does_set_de_work() {
-        let mut registers = Registers {
+    fn test_set_de() {
+        let mut registers = EMPTY_REGISTERS;
+
+        registers.set_de(upper_lower_as_u16(UPPER_BYTE, LOWER_BYTE));
+        assert_eq!(registers.d, UPPER_BYTE);
+        assert_eq!(registers.e, LOWER_BYTE);
+    }
+
+    #[test]
+    fn test_get_hl() {
+        let registers = Registers {
             a: 0,
             b: 0,
             c: 0,
             d: 0,
             e: 0,
-            f: FlagsRegister {zero: false,subtract: false,half_carry: false,carry: false},
-            h: 0,
-            l: 0,
+            f: EMPTY_FLAGS_REGISTER,
+            h: UPPER_BYTE,
+            l: LOWER_BYTE,
         };
 
-        registers.set_de(24419); // 0101111101100011
-        assert_eq!(registers.d, 95); // 01011111
-        assert_eq!(registers.e, 99); // 01100011
+        let result = registers.get_hl();
+        assert_eq!(result, upper_lower_as_u16(UPPER_BYTE, LOWER_BYTE));
+    }
+
+    #[test]
+    fn test_set_hl() {
+        let mut registers = EMPTY_REGISTERS;
+
+        registers.set_hl(upper_lower_as_u16(UPPER_BYTE, LOWER_BYTE));
+        assert_eq!(registers.h, UPPER_BYTE);
+        assert_eq!(registers.l, LOWER_BYTE);
     }
 }
