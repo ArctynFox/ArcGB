@@ -1,4 +1,3 @@
-// ---------- emulate the CPU's registers
 pub struct Registers {
     pub a: u8,
     pub b: u8,
@@ -72,7 +71,6 @@ impl Registers {
         self.l = (value & 0xFF) as u8;
     }
 }
-// ---------- end emulation of CPU registers
 
 // ---------- model to handle the flags register easier by only ever modifying the upper 4 bits
 // struct with separate bools for each of the possible flags, also deriving copy and clone so that converting to u8 doesn't require a pointer.
@@ -128,7 +126,7 @@ impl std::convert::From<u8> for FlagsRegister {
         }
     }
 }
-// ---------- end flags register model model
+// ---------- end flags register model
 
 #[cfg(test)]
 mod tests {
