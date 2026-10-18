@@ -10,7 +10,7 @@ pub enum Instruction {
 
 // arithmetic can be performed on all physical registers other than F
 pub enum TargetRegister {
-    A,B,C,D,E,H,L,N8(i16),N16(i32),E8(i8),U3(u8),BC,DE,HL,HLAsAddress
+    A,B,C,D,E,H,L,N8(i16),N16(i32),E8(i8),U3(u8),BC,DE,HL,HLAsPointer
 }
 
 // implementation of the instructions on the hardware

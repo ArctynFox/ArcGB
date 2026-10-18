@@ -48,7 +48,7 @@ impl Registers {
 
     pub fn set_af(&mut self, value: u16) {
         self.a = ((value & 0xFF00) >> 8) as u8;
-        self.f = ((value & 0xFF) as u8).into();
+        self.f = FlagsRegister::from((value & 0xFF) as u8);
     }
 
     pub fn get_de(&self) -> u16 {
@@ -101,7 +101,7 @@ const CARRY_FLAG_BYTE_POSITION: u8 = 4;
 
 // the following two functions only interact with the upper 4 bits of the u8 used for the flag register, so that we are certain we never mess with the lower 4
 // convert from the FlagsRegister representative struct to u8
-impl std::convert::From<FlagsRegister> for u8  {
+impl From<FlagsRegister> for u8  {
     fn from(flag: FlagsRegister) -> u8 {
         (if flag.zero       { 1 } else { 0 }) << ZERO_FLAG_BYTE_POSITION |
         (if flag.subtract   { 1 } else { 0 }) << SUBTRACT_FLAG_BYTE_POSITION |
@@ -111,7 +111,7 @@ impl std::convert::From<FlagsRegister> for u8  {
 }
 
 //convert from u8 to FlagsRegister, ignoring the lower 4 bits
-impl std::convert::From<u8> for FlagsRegister {
+impl From<u8> for FlagsRegister {
     fn from(byte: u8) -> Self {
         let zero = ((byte >> ZERO_FLAG_BYTE_POSITION) & 0b1) != 0;
         let subtract = ((byte >> SUBTRACT_FLAG_BYTE_POSITION) & 0b1) != 0;
