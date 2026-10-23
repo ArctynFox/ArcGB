@@ -1,3 +1,4 @@
+/// A struct representation of the registers of the GameBoy's CPU.
 pub struct Registers {
     pub a: u8,
     pub b: u8,
@@ -25,47 +26,52 @@ impl Default for Registers {
 }
 
 
-// implementations for 16-bit virtual register functions
+/// Implementations for 16-bit virtual register functions supported by the GameBoy's CPU.
 impl Registers {
-    // shift b left 8 bits and OR with c
+    /// Return a 2 byte value where the `B` register is the upper byte and the `C` register is the lower byte.
     pub fn get_bc(&self) -> u16 {
         (self.b as u16) << 8
         | self.c as u16
     }
 
-    // separate the given u16 into the first 8 bits for b and the last 8 bits for c
+    /// Separate the given `u16` into the first 8 bits, which go into the `B` register, and the last 8 bits, which go into the `C` register.
     pub fn set_bc(&mut self, value: u16) {
         // shift the bits right by 8 to get the b value
         self.b = ((value & 0xFF00) >> 8) as u8;
         self.c = (value & 0xFF) as u8;
     }
 
-    // the rest of these are the same as how bc works but for different registers
+    /// Return a 2 byte value where the `A` register is the upper byte and the `F` register is the lower byte.
     pub fn get_af(&self) -> u16 {
         (self.a as u16) << 8
         | u8::from(self.f) as u16
     }
 
+    /// Separate the given `u16` into the first 8 bits, which go into the `A` register, and the last 8 bits, which go into the `F` register.
     pub fn set_af(&mut self, value: u16) {
         self.a = ((value & 0xFF00) >> 8) as u8;
         self.f = FlagsRegister::from((value & 0xFF) as u8);
     }
 
+    /// Return a 2 byte value where the `D` register is the upper byte and the `E` register is the lower byte.
     pub fn get_de(&self) -> u16 {
         (self.d as u16) << 8
         | self.e as u16
     }
 
+    /// Separate the given `u16` into the first 8 bits, which go into the `D` register, and the last 8 bits, which go into the `E` register.
     pub fn set_de(&mut self, value: u16) {
         self.d = ((value & 0xFF00) >> 8) as u8;
         self.e = (value & 0xFF) as u8;
     }
 
+    /// Return a 2 byte value where the `H` register is the upper byte and the `L` register is the lower byte.
     pub fn get_hl(&self) -> u16 {
         (self.h as u16) << 8
         | self.l as u16
     }
 
+    /// Separate the given `u16` into the first 8 bits, which go into the `H` register, and the last 8 bits, which go into the `L` register.
     pub fn set_hl(&mut self, value: u16) {
         self.h = ((value & 0xFF00) >> 8) as u8;
         self.l = (value & 0xFF) as u8;
@@ -73,7 +79,7 @@ impl Registers {
 }
 
 // ---------- model to handle the flags register easier by only ever modifying the upper 4 bits
-// struct with separate bools for each of the possible flags, also deriving copy and clone so that converting to u8 doesn't require a pointer.
+/// A struct with separate bools for each of the possible flags, which map to the upper 4 bits of the `F` register.
 #[derive(Copy, Clone)]
 pub struct FlagsRegister {
     pub zero: bool,
@@ -100,7 +106,7 @@ const HALF_CARRY_FLAG_BYTE_POSITION: u8 = 5;
 const CARRY_FLAG_BYTE_POSITION: u8 = 4;
 
 // the following two functions only interact with the upper 4 bits of the u8 used for the flag register, so that we are certain we never mess with the lower 4
-// convert from the FlagsRegister representative struct to u8
+// Convert from the FlagsRegister representative struct to u8
 impl From<FlagsRegister> for u8  {
     fn from(flag: FlagsRegister) -> u8 {
         (if flag.zero       { 1 } else { 0 }) << ZERO_FLAG_BYTE_POSITION |

@@ -1,5 +1,4 @@
-//U3 datatype which represents a bit index for u8 values
-
+/// u3 datatype which represents a bit index for u8 values.
 #[derive(Copy, Clone)]
 pub struct U3 {
     pub value: [bool; 3]
@@ -16,6 +15,7 @@ impl U3 {
         }
     }
 
+    /// Returns a u8 where the only true bit is in the position dictated by the value of the u3, where the lowest bit is 0.
     pub fn to_definition(&self) -> u8 {
         1u8 << u8::from(self)
     }

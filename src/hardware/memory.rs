@@ -13,3 +13,16 @@ impl MemoryBus {
         self.memory[addr as usize]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::MemoryBus;
+
+    #[test]
+    fn test_read_byte() {
+        let mut bus = MemoryBus::default();
+        bus.memory[0x0000] = 175;
+
+        assert_eq!(bus.read_byte(0x0000), 175);
+    }
+}

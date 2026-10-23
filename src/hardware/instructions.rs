@@ -3,9 +3,13 @@ use super::cpu::{TargetRegister, CPU};
 
 impl CPU {
     //-------------------INSTRUCTION FUNCTIONALITY START-------------------
-    // arithmetic add plus carry bit
-    // A + value + f.carry -> A
-    // supported targets: r8, n8, HLAsPointer
+    /**
+     * Add the target and the value of the carry bit to the `A` register and put the result in the `A` register.
+     *
+     * | Parameter | Explanation                                                                   |
+     * | --------- | ----------------------------------------------------------------------------- |
+     * | `target`  | The target data to add to the `A` register. Accepts `r8`, `HLAsPointer`, `n8` |
+     */
     pub fn adc(&mut self, target: TargetRegister) {
         let value = self.get_register_value(&target) as u8;
         // add the accumulator
@@ -22,9 +26,13 @@ impl CPU {
         self.registers.a = new_value;
     }
 
-    // arithmetic add instruction
-    // A + value -> A
-    // supported targets: r8, n8, HLAsPointer
+    /**
+     * Add the target to the `A` register and put the new value into the `A` register.
+     *
+     * | Parameter | Explanation                                                                       |
+     * | --------- | --------------------------------------------------------------------------------- |
+     * | `target`  | The target data to add to the `A` register. Accepts `r8`, `HLAsPointer`, and `n8` |
+     */
     pub fn add(&mut self, target: TargetRegister) {
         let value = self.get_register_value(&target) as u8;
         let (new_value, did_overflow) = self.registers.a.overflowing_add(value);
@@ -36,9 +44,13 @@ impl CPU {
         self.registers.a = new_value;
     }
 
-    // arithmetic add instruction using HL for 16 bit data
-    // HL + value -> HL
-    // supported targets: r16, SP
+    /**
+     * Add the target to the `HL` register and put the new value into the `HL` register.
+     *
+     * | Parameter | Explanation                                                                    |
+     * | --------- | ------------------------------------------------------------------------------ |
+     * | `target`  | The target data to add to the `HL` register. Accepts `r16` and `SP` (TODO: SP) |
+     */
     pub fn addhl(&mut self, target: TargetRegister) {
         let value = self.get_register_value(&target) as u16;
         let (new_value, did_overflow) = self.registers.get_hl().overflowing_add(value);
@@ -56,16 +68,20 @@ impl CPU {
         todo!("addsp not yet implemented");
     }
 
-    // arithmetic AND instruction
-    // A & value -> A
-    // supported targets: r8, HL as Pointer, n8
+    /**
+     * Bitwise AND the target with the value in the A register and puts the result into the A register.
+     *
+     * | Parameter | Explanation                                                                                  |
+     * | --------- | -------------------------------------------------------------------------------------------- |
+     * | `target`  | The target data to AND with the value in the `A` register. Accepts `r8`, `HLAsPointer`, `n8` |
+     */
     pub fn and(&mut self, target: TargetRegister) {
         let value = self.get_register_value(&target) as u8;
         self.registers.a = self.registers.a & value;
 
-        if matches!(target, TargetRegister::HLAsPointer) || matches!(target, TargetRegister::N8(_)) {
-            todo!("clock not yet implemented")
-        }
+        // if matches!(target, TargetRegister::HLAsPointer) || matches!(target, TargetRegister::N8(_)) {
+        //     todo!("clock not yet implemented")
+        // }
 
         self.registers.f.zero = value == 0;
         self.registers.f.subtract = false;
@@ -73,9 +89,14 @@ impl CPU {
         self.registers.f.carry = false;
     }
 
-    // test state of given bit in target register
-    // !r8[U3] -> f.zero
-    // supports r8, HL as Pointer
+    /**
+     * Test if the given bit in the target is zero or not and put the result in the zero flag of the `F` register.
+     *
+     * | Parameter | Explanation                                                         |
+     * | --------- | ------------------------------------------------------------------- |
+     * | `target`  | The target data to perform the test on. Accepts `r8`, `HLAsPointer` |
+     * | `bit`     | A `u3` representing the bit index in the target to test.            |
+     */
     pub fn bit(&mut self, target: TargetRegister, bit: U3) {
         let value = self.get_register_value(&target) as u8;
 
@@ -84,8 +105,13 @@ impl CPU {
         self.registers.f.half_carry = true;
     }
 
-    // arithmetic subtract instruction, A - value -> A
-    // supported targets: r8, n8, HLAsPointer
+    /**
+     * Subtract the given target's value from the `A` register and put the result into the `A` register.
+     *
+     * | Parameter | Explanation                                                                          |
+     * | --------- | ------------------------------------------------------------------------------------ |
+     * | `target`  | The target data to subtract from the `A` register. Accepts `r8`, `HLAsPointer`, `n8` |
+     */
     pub fn sub(&mut self, target: TargetRegister) {
         let value = self.get_register_value(&target) as u8;
         let (new_value, did_underflow) = self.registers.a.overflowing_sub(value);
@@ -99,7 +125,15 @@ impl CPU {
     //-------------------INSTRUCTION FUNCTIONALITY END-------------------
 
     //----------------------HELPER FUNCTIONS START-----------------------
-    // return the value of the register determined by the enum
+    /**
+     * Retrieve the value from the target data.
+     *
+     * | Parameter | Explanation                                              |
+     * | --------- | -------------------------------------------------------- |
+     * | `target`  | A reference to the target data to retrieve a value from. |
+     *
+     * Returns `isize`: The value stored in the target.
+     */
     fn get_register_value(&self, target: &TargetRegister) -> isize {
         match target {
             TargetRegister::A => self.registers.a as isize,
@@ -134,6 +168,7 @@ impl CPU {
 
 #[cfg(test)]
 mod tests {
+    use crate::datatypes::U3;
     use crate::hardware::cpu::*;
 
     //---------------ADC START---------------
@@ -328,11 +363,37 @@ mod tests {
     //--------------ADDHL END---------------
 
     //--------------AND START---------------
-    //TODO
+    #[test]
+    fn test_and() {
+        let mut cpu = CPU::default();
+        cpu.registers.a = 0b0110_0101;
+        let num = 0b0010_0011;
+
+        cpu.execute(Instruction::AND(TargetRegister::N8(num)));
+
+        assert_eq!(cpu.registers.a, 0b0010_0001);
+    }
     //---------------AND END----------------
 
     //--------------BIT START---------------
-    //TODO
+    #[test]
+    fn test_bit_all_bits() {
+        let mut cpu = CPU::default();
+        cpu.registers.a = 0b1010_0101;
+
+        for n in 0..7u8 {
+            let bit = U3::from(n);
+
+            let corresponding_bit = (cpu.registers.a >> n) & 0b0000_0001;
+            let expected = corresponding_bit == 0;
+
+            cpu.execute(Instruction::BIT(TargetRegister::A, bit));
+
+            assert_eq!(cpu.registers.f.zero, expected);
+            assert_eq!(cpu.registers.f.subtract, false);
+            assert_eq!(cpu.registers.f.half_carry, true);
+        }
+    }
     //---------------BIT END----------------
 
     //--------------SUB START---------------
